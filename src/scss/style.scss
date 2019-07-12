@@ -1,0 +1,65 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  background: #f3f3f3;
+  height: 32px;
+  padding: 48px 40px 10px 40px;
+  border-bottom: 2px solid #dadada;
+  .manage-panel {
+    .btn-blue {
+      background: #0271c7;
+      color: #f2f2f2;
+      box-shadow: 1px 1px 1px #0068c1;
+      text-shadow: 1px 1px 2px #005094;
+      &:hover {
+        background: #0261c7;
+        color: #fff;
+      }
+    }
+  }
+  .search-panel {
+    .icon-search {
+      background: url(icons/icons.jpg) 0px 5px no-repeat;
+      width: 15px;
+      height: 22px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .search {
+      height: 22px;
+      width: 180px;
+      border-radius: 3px;
+      border: 1px solid #e2e2e2;
+      padding: 0 10px;
+    }
+  }
+}
+
+.container {
+  margin: 0 auto;
+  width: 1140px;
+}
+
+.calendar-body {
+  padding: 8px 40px 10px 40px;
+}
+
+.btn {
+  height: 24px;
+  border-radius: 3px;
+  margin: 0px 5px;
+  padding: 0 8px;
+  display: inline-block;
+}
+
+.btn-today {
+  height: 18px;
+  line-height: 18px;
+  vertical-align: middle;
+}
+
+.btn-default {
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #969696;
+}
