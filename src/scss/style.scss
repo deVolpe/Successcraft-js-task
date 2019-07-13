@@ -13,15 +13,15 @@
       text-shadow: 1px 1px 2px #005094;
       &:hover {
         background: #0261c7;
-        color: #fff;
+        color: #ffffff;
       }
     }
   }
   .search-panel {
-    .icon-search {
-      background: url(icons/icons.jpg) 0px 5px no-repeat;
-      width: 15px;
-      height: 22px;
+    display: flex;
+    .icon {
+      background: url(../icons/svg/magnifying-glass.svg) no-repeat;
+      width: 20px;
       display: inline-block;
       vertical-align: middle;
     }
@@ -29,19 +29,46 @@
       height: 22px;
       width: 180px;
       border-radius: 3px;
-      border: 1px solid #e2e2e2;
+      border-top: 2px solid #c7c7c7;
       padding: 0 10px;
     }
   }
 }
 
-.container {
-  margin: 0 auto;
-  width: 1140px;
+.calendar-date {
+  padding: 20px 0 20px;
+  .btn-prev,
+  .btn-next {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    color: transparent;
+    font-size: 8px;
+    justify-content: center;
+  }
+  .btn-prev {
+    background: url(../icons/svg/play-button-reverse.svg) no-repeat;
+  }
+  .btn-next {
+    background: url(../icons/svg/play-button.svg) no-repeat;
+  }
+  .calendar-date__current {
+    font-size: 14px;
+    color: #555555;
+    vertical-align: middle;
+    display: inline-block;
+    width: 100px;
+    text-align: center;
+  }
 }
 
 .calendar-body {
   padding: 8px 40px 10px 40px;
+}
+
+.container {
+  margin: 0 auto;
+  width: 1140px;
 }
 
 .btn {
@@ -59,7 +86,7 @@
 }
 
 .btn-default {
-  border: 1px solid #ccc;
-  background: #fff;
+  border: 1px solid #cccccc;
+  background: #ffffff;
   color: #969696;
 }
