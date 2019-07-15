@@ -168,9 +168,6 @@ window.onload = () => {
 };
 
 function renderCalendar() {
-  const months = [];
-  let eventDay;
-
   const container = document.getElementById('table', '', '');
   container.innerHTML = '';
 
@@ -189,14 +186,16 @@ function renderCalendar() {
     1
   ).getTime();
 
-  eventDay = firstDayTieSeconds - data.DAY * (firstDay - 1);
+  const months = [];
+  let eventDay = firstDayTieSeconds - data.DAY * (firstDay - 1);
+  let td;
 
   for (let row = 0; row < 5; row++) {
     const tr = createElement('tr', '');
     tbody.appendChild(tr);
     for (let col = 0; col < 7; col++) {
       if (!row) {
-        var td = createElement(
+        td = createElement(
           'td',
           '',
           `${data.local.week[col]}, ${new Date(eventDay).getDate()}`
@@ -215,44 +214,42 @@ function renderCalendar() {
       if (eventDay < Date.now() - data.DAY) {
         td.className = 'last';
       }
-      eventList.forEach(event => {
-        if (!!event && +event.id === eventDay) {
+      eventList.forEach(ev => {
+        if (!!ev && +ev.id === eventDay) {
           td.className = 'active';
           if (eventDay < Date.now() - data.DAY) {
             td.className = 'last active';
           }
           td.innerHTML +=
             '<br/><b>' +
-            event.event +
+            ev.event +
             '</b><br/>' +
-            event.date +
+            ev.date +
+            '<br/>Participants:' +
+            ev.participants +
             '<br/>' +
-            event.names +
-            '<br/>' +
-            event.description +
+            ev.description +
             '<br/>';
         }
       });
 
       td.setAttribute('data-day', eventDay);
       td.addEventListener('click', e => {
-        if (toggleDialog()) {
-          return;
-        }
+        if (toggleDialog()) return;
         const el = e.target;
         if (hasClass(el, 'active') || hasClass(el, 'last active')) {
           el.className = 'active edit';
           const id = +el.getAttribute('data-day');
-          let data;
-          eventList.forEach(event => {
-            if (event && event.id === id) {
-              data = event;
-            }
-          });
+          const event = eventList.filter(ev => ev.id === id)[0];
+          // eventList.forEach(event => {
+          //   if (event && event.id === id) {
+          //     data = event;
+          //   }
+          // });
           const editForm = createElement('div', 'add-form-edit');
           document.getElementById('table').appendChild(editForm);
-          editForm.style.left = e.target.offsetLeft + 170 + 'px';
-          editForm.style.top = e.target.offsetTop - 30 + 'px';
+          editForm.style.left = `${e.target.offsetLeft + 170}px`;
+          editForm.style.top = `${e.target.offsetTop - 30}px`;
 
           const close = createElement('span', 'btn-close', 'x');
           close.addEventListener('click', () => {
@@ -261,31 +258,35 @@ function renderCalendar() {
             editForm.parentNode.removeChild(editForm);
           });
           const btnClean = createElement('button', 'btn btn-clear', 'Clean');
-          btnErase.addEventListener('click', () => {
+          btnClean.addEventListener('click', () => {
             data.isDialog = false;
             editForm.parentNode.removeChild(editForm);
-            el.innerHTML = new Date(data.id).getDate();
+            el.innerHTML = new Date(event.id).getDate();
             el.removeAttribute('class');
 
-            eventList.forEach((event, i) => {
-              if (!!event && data.id === event.id) {
-                eventList.splice(i, 1);
-              }
-            });
-            localStorage.setItem('events', JSON.stringify(eventList) || '[]');
+            const _eventList = eventList.filter(ev => event.id !== ev.id)[0];
+            // eventList.forEach((event, i) => {
+            //   if (!!event && data.id === event.id) {
+            //     eventList.splice(i, 1);
+            //   }
+            // });
+            localStorage.setItem('events', JSON.stringify(_eventList) || '[]');
           });
 
-          const fieldEvent = createElement('h3', '', data.event);
-          const fieldDate = createElement('p', '', data.date);
-          const fieldName = createElement('p', '', data.names);
+          const fieldEvent = createElement('h3', '', event.event);
+          const fieldDate = createElement('p', '', event.date);
+          const fieldNames = createElement('p', '', event.participants);
 
-          const fieldDescription = createElement('textarea', '');
-          fieldDescription.value = data.description;
+          const fieldDescription = createElement(
+            'textarea',
+            '',
+            event.description
+          );
 
           const btnAdd = createElement('button', 'btn btn-add', 'Add');
           btnAdd.addEventListener('click', () => {
             data.isDialog = false;
-            data.description = fieldDescription.value;
+            event.description = fieldDescription.value;
             el.className = 'active';
             el.innerHTML =
               new Date(id).getDate() +
@@ -294,13 +295,16 @@ function renderCalendar() {
               '</b><br/>' +
               data.date +
               '<br/>' +
-              data.names +
+              data.participants +
               '<br/>' +
               data.description +
               '<br/>';
-            eventList.forEach((event, i) => {
-              if (!!event && data.id == event.id) {
-                eventList[i] = data;
+            // const _eventList = eventList.reduce((acc, curr, i, arr) => {
+            //   if (event.id === curr.id) arr[i] = curr;
+            // });
+            eventList.forEach((ev, i) => {
+              if (!!ev && event.id == ev.id) {
+                eventList[i] = event;
               }
             });
             localStorage.setItem('events', JSON.stringify(eventList) || '[]');
@@ -309,10 +313,10 @@ function renderCalendar() {
           editForm.appendChild(close);
           editForm.appendChild(fieldEvent);
           editForm.appendChild(fieldDate);
-          editForm.appendChild(fieldName);
+          editForm.appendChild(fieldNames);
           editForm.appendChild(fieldDescription);
           editForm.appendChild(btnAdd);
-          editForm.appendChild(btnErase);
+          editForm.appendChild(btnClean);
         } else {
           if (hasClass(el, 'last')) {
             data.isDialog = false;
@@ -341,8 +345,8 @@ function renderCalendar() {
           const fieldDate = createElement('input', '');
           fieldDate.setAttribute('placeholder', 'Time');
 
-          const fieldName = createElement('input', '');
-          fieldName.setAttribute('placeholder', 'Names of participants');
+          const fieldNames = createElement('input', '');
+          fieldNames.setAttribute('placeholder', 'Names of participants');
 
           const fieldDescription = createElement('textarea', '');
           fieldDescription.setAttribute('placeholder', 'Description');
@@ -352,7 +356,7 @@ function renderCalendar() {
               id: +fieldId.value,
               event: fieldEvent.value,
               date: fieldDate.value,
-              names: fieldName.value,
+              participants: fieldNames.value,
               description: fieldDescription.value
             };
             data.isDialog = false;
@@ -365,7 +369,7 @@ function renderCalendar() {
           advancedFormLast.appendChild(close);
           advancedFormLast.appendChild(fieldEvent);
           advancedFormLast.appendChild(fieldDate);
-          advancedFormLast.appendChild(fieldName);
+          advancedFormLast.appendChild(fieldNames);
           advancedFormLast.appendChild(fieldDescription);
           advancedFormLast.appendChild(btnDone);
           advancedFormLast.appendChild(btnClean);
