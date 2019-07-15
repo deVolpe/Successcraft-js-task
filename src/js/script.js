@@ -27,9 +27,6 @@ data.local.months = [
   'November',
   'December'
 ];
-data.local.monthsList = function() {
-  return this.months.map(month => month.toLowerCase());
-};
 
 // data
 
@@ -78,7 +75,7 @@ const toggleDialog = () => {
 
 window.onload = () => {
   const managePanel = document.getElementById('manage-panel');
-
+  const searchPanel = document.getElementById('search-panel');
   displayDate();
 
   document.getElementById('add').addEventListener('click', () => {
@@ -89,7 +86,7 @@ window.onload = () => {
     managePanel.appendChild(addForm);
 
     const close = createElement('span', 'btn-close', 'x');
-    const btnCreate = createElement('button', 'btn-add', 'Create');
+    const btnCreate = createElement('button', 'btn btn-add', 'Create');
     const inputAdd = createElement('input');
     inputAdd.setAttribute('placeholder', 'March 5, 2.00 pm, Birthday');
     btnCreate.addEventListener('click', () => {
@@ -263,7 +260,7 @@ function renderCalendar() {
             el.className = 'active';
             editForm.parentNode.removeChild(editForm);
           });
-          const btnErase = createElement('button', 'btn', 'Erase');
+          const btnClean = createElement('button', 'btn btn-clear', 'Clean');
           btnErase.addEventListener('click', () => {
             data.isDialog = false;
             editForm.parentNode.removeChild(editForm);
@@ -275,7 +272,7 @@ function renderCalendar() {
                 eventList.splice(i, 1);
               }
             });
-            localStorage.setItem('events', JSON.stringify(eventList));
+            localStorage.setItem('events', JSON.stringify(eventList) || '[]');
           });
 
           const fieldEvent = createElement('h3', '', data.event);
@@ -285,7 +282,7 @@ function renderCalendar() {
           const fieldDescription = createElement('textarea', '');
           fieldDescription.value = data.description;
 
-          const btnAdd = createElement('button', 'btn', 'Add');
+          const btnAdd = createElement('button', 'btn btn-add', 'Add');
           btnAdd.addEventListener('click', () => {
             data.isDialog = false;
             data.description = fieldDescription.value;
@@ -306,7 +303,7 @@ function renderCalendar() {
                 eventList[i] = data;
               }
             });
-            localStorage.setItem('events', JSON.stringify(eventList));
+            localStorage.setItem('events', JSON.stringify(eventList) || '[]');
             editForm.parentNode.removeChild(editForm);
           });
           editForm.appendChild(close);
@@ -332,8 +329,8 @@ function renderCalendar() {
             advancedFormLast.parentNode.removeChild(advancedFormLast);
           });
 
-          const btnDone = createElement('button', 'btn', 'Done');
-          const btnErase = createElement('button', 'btn', 'Erase');
+          const btnDone = createElement('button', 'btn btn-add', 'Done');
+          const btnClean = createElement('button', 'btn btn-clean', 'Clean');
           const fieldId = createElement('input', '');
           fieldId.setAttribute('type', 'hidden');
           fieldId.value = el.getAttribute('data-day');
@@ -345,7 +342,7 @@ function renderCalendar() {
           fieldDate.setAttribute('placeholder', 'Time');
 
           const fieldName = createElement('input', '');
-          fieldName.setAttribute('placeholder', 'Participants names');
+          fieldName.setAttribute('placeholder', 'Names of participants');
 
           const fieldDescription = createElement('textarea', '');
           fieldDescription.setAttribute('placeholder', 'Description');
@@ -360,7 +357,7 @@ function renderCalendar() {
             };
             data.isDialog = false;
             eventList.push(event);
-            localStorage.setItem('events', JSON.stringify(eventList));
+            localStorage.setItem('events', JSON.stringify(eventList) || '[]');
             advancedFormLast.parentNode.removeChild(advancedFormLast);
             renderCalendar();
           });
@@ -371,7 +368,7 @@ function renderCalendar() {
           advancedFormLast.appendChild(fieldName);
           advancedFormLast.appendChild(fieldDescription);
           advancedFormLast.appendChild(btnDone);
-          advancedFormLast.appendChild(btnErase);
+          advancedFormLast.appendChild(btnClean);
         }
       });
       tr.appendChild(td);
