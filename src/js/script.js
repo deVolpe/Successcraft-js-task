@@ -70,14 +70,19 @@ const getFirstDayMonth = (year, month) => {
 
 const hasClass = (el, cls) => el.className.includes(cls);
 
+const toggleDialog = () => {
+  if (data.isDialog) return true;
+  data.isDialog = true;
+  return false;
+};
+
 window.onload = () => {
   const managePanel = document.getElementById('manage-panel');
 
   displayDate();
 
   document.getElementById('add').addEventListener('click', () => {
-    if (!data.isDialog) {
-      data.isDialog = true;
+    if (toggleDialog()) {
       return;
     }
     const addForm = createElement('div', 'add-form');
@@ -97,12 +102,14 @@ window.onload = () => {
       newEvent.date = data[1].trim();
       newEvent.description = data[2].trim();
       newEvent.participants = 'No info';
+
       eventList.push(newEvent);
       localStorage.events = JSON.stringify(eventList);
       data.isDialog = false;
       managePanel.removeChild(addForm);
     });
     close.addEventListener('click', () => {
+      data.isDialog = false;
       managePanel.removeChild(addForm);
     });
     addForm.appendChild(close);
@@ -119,6 +126,7 @@ window.onload = () => {
       data.currentDate.month > 10 ? 0 : ++data.currentDate.month;
     if (!data.currentDate.month) data.currentDate.year++;
     displayDate();
+    renderCalendar();
   });
 
   document.getElementById('prev').addEventListener('click', () => {
@@ -127,6 +135,7 @@ window.onload = () => {
       : --data.currentDate.month;
     if (data.currentDate.month === 11) data.currentDate.year--;
     displayDate();
+    renderCalendar();
   });
 
   document.getElementById('today').addEventListener('click', () => {
@@ -135,10 +144,11 @@ window.onload = () => {
       year: new Date().getFullYear()
     };
     displayDate();
+    renderCalendar();
   });
 
   document.getElementById('search').addEventListener('keyup', e => {
-    const query = e.target.value;
+    const query = e.target.value.toLowerCase();
     const events = eventList.map(data => {
       return `${data.event}<br/>${data.date}`;
     });
@@ -154,15 +164,17 @@ window.onload = () => {
     } else {
       displaySearchResult();
     }
+    displayDate();
+    renderCalendar();
   });
   renderCalendar();
 };
 
 function renderCalendar() {
   const months = [];
-  let aDay;
+  let eventDay;
 
-  const container = document.getElementById('table', '');
+  const container = document.getElementById('table', '', '');
   container.innerHTML = '';
 
   const table = createElement('table', '');
@@ -170,14 +182,17 @@ function renderCalendar() {
   const tbody = createElement('tbody', '');
   table.appendChild(tbody);
 
-  const fDay = getFirstDayMonth(data.currentDate.year, data.currentDate.month);
-  const fDayTS = new Date(
+  const firstDay = getFirstDayMonth(
+    data.currentDate.year,
+    data.currentDate.month
+  );
+  const firstDayTieSeconds = new Date(
     data.currentDate.year,
     data.currentDate.month,
     1
   ).getTime();
 
-  aDay = fDayTS - data.DAY * (fDay - 1);
+  eventDay = firstDayTieSeconds - data.DAY * (firstDay - 1);
 
   for (let row = 0; row < 5; row++) {
     const tr = createElement('tr', '');
@@ -187,26 +202,26 @@ function renderCalendar() {
         var td = createElement(
           'td',
           '',
-          data.local.week[col] + ', ' + new Date(aDay).getDate()
+          `${data.local.week[col]}, ${new Date(eventDay).getDate()}`
         );
       } else {
         if (row && !col) {
-          months[0] = new Date(aDay).getMonth() + 1;
+          months[0] = new Date(eventDay).getMonth() + 1;
         } else if (row === data.rowTotal - 1 && col === 6) {
-          months[1] = new Date(aDay).getMonth() + 1;
+          months[1] = new Date(eventDay).getMonth() + 1;
           if (months[0] === months[1]) {
             months.pop();
           }
         }
-        td = createElement('td', '', new Date(aDay).getDate());
+        td = createElement('td', '', new Date(eventDay).getDate());
       }
-      if (aDay < Date.now() - data.DAY) {
+      if (eventDay < Date.now() - data.DAY) {
         td.className = 'last';
       }
       eventList.forEach(event => {
-        if (!!event && +event.id === aDay) {
+        if (!!event && +event.id === eventDay) {
           td.className = 'active';
-          if (aDay < Date.now() - data.DAY) {
+          if (eventDay < Date.now() - data.DAY) {
             td.className = 'last active';
           }
           td.innerHTML +=
@@ -222,8 +237,11 @@ function renderCalendar() {
         }
       });
 
-      td.setAttribute('data-day', aDay);
-      td.addEventListener('mousedown', function(e) {
+      td.setAttribute('data-day', eventDay);
+      td.addEventListener('click', e => {
+        if (toggleDialog()) {
+          return;
+        }
         const el = e.target;
         if (hasClass(el, 'active') || hasClass(el, 'last active')) {
           el.className = 'active edit';
@@ -234,19 +252,21 @@ function renderCalendar() {
               data = event;
             }
           });
-          const wrap = createElement('div', 'add-form-edit');
-          document.getElementById('table').appendChild(wrap);
-          wrap.style.left = this.offsetLeft + 130 + 'px';
-          wrap.style.top = this.offsetTop - 20 + 'px';
+          const editForm = createElement('div', 'add-form-edit');
+          document.getElementById('table').appendChild(editForm);
+          editForm.style.left = e.target.offsetLeft + 170 + 'px';
+          editForm.style.top = e.target.offsetTop - 30 + 'px';
 
           const close = createElement('span', 'btn-close', 'x');
-          close.addEventListener('click', e => {
+          close.addEventListener('click', () => {
+            data.isDialog = false;
             el.className = 'active';
-            wrap.parentNode.removeChild(wrap);
+            editForm.parentNode.removeChild(editForm);
           });
-          const btnClean = createElement('button', 'btn-clean', 'Erase');
-          btnClean.addEventListener('click', () => {
-            wrap.parentNode.removeChild(wrap);
+          const btnErase = createElement('button', 'btn', 'Erase');
+          btnErase.addEventListener('click', () => {
+            data.isDialog = false;
+            editForm.parentNode.removeChild(editForm);
             el.innerHTML = new Date(data.id).getDate();
             el.removeAttribute('class');
 
@@ -265,8 +285,9 @@ function renderCalendar() {
           const fieldDescription = createElement('textarea', '');
           fieldDescription.value = data.description;
 
-          const btn = createElement('button', 'btn-add', 'Add');
-          btn.addEventListener('click', () => {
+          const btnAdd = createElement('button', 'btn', 'Add');
+          btnAdd.addEventListener('click', () => {
+            data.isDialog = false;
             data.description = fieldDescription.value;
             el.className = 'active';
             el.innerHTML =
@@ -286,53 +307,50 @@ function renderCalendar() {
               }
             });
             localStorage.setItem('events', JSON.stringify(eventList));
-            wrap.parentNode.removeChild(wrap);
+            editForm.parentNode.removeChild(editForm);
           });
-          wrap.appendChild(close);
-          wrap.appendChild(fieldEvent);
-          wrap.appendChild(fieldDate);
-          wrap.appendChild(fieldName);
-          wrap.appendChild(fieldDescription);
-          wrap.appendChild(btn);
-          wrap.appendChild(btnClean);
+          editForm.appendChild(close);
+          editForm.appendChild(fieldEvent);
+          editForm.appendChild(fieldDate);
+          editForm.appendChild(fieldName);
+          editForm.appendChild(fieldDescription);
+          editForm.appendChild(btnAdd);
+          editForm.appendChild(btnErase);
         } else {
           if (hasClass(el, 'last')) {
             data.isDialog = false;
             return;
           }
-          const wrap = createElement('div', 'add-form-advanced');
-          document.getElementById('table').appendChild(wrap);
-          wrap.style.left = this.offsetLeft + 130 + 'px';
-          wrap.style.top = this.offsetTop - 20 + 'px';
+          const advancedFormLast = createElement('div', 'add-form-advanced');
+          document.getElementById('table').appendChild(advancedFormLast);
+          advancedFormLast.style.left = e.target.offsetLeft + 170 + 'px';
+          advancedFormLast.style.top = e.target.offsetTop - 30 + 'px';
 
           const close = createElement('span', 'btn-close', 'x');
           close.addEventListener('click', () => {
-            wrap.parentNode.removeChild(wrap);
+            data.isDialog = false;
+            advancedFormLast.parentNode.removeChild(advancedFormLast);
           });
 
-          const btnDone = createElement('button', 'btn-add', 'Done');
-          const btnClean = createElement('button', '', 'Erase');
+          const btnDone = createElement('button', 'btn', 'Done');
+          const btnErase = createElement('button', 'btn', 'Erase');
           const fieldId = createElement('input', '');
           fieldId.setAttribute('type', 'hidden');
           fieldId.value = el.getAttribute('data-day');
 
-          const fieldEvent = createElement('input', 'field-add');
+          const fieldEvent = createElement('input', '');
           fieldEvent.setAttribute('placeholder', 'Event');
 
-          const fieldDate = createElement('input', 'field-date');
+          const fieldDate = createElement('input', '');
           fieldDate.setAttribute('placeholder', 'Time');
 
-          const fieldName = createElement('input', 'field-name');
+          const fieldName = createElement('input', '');
           fieldName.setAttribute('placeholder', 'Participants names');
 
-          const fieldDescription = createElement(
-            'textarea',
-            'field-description'
-          );
+          const fieldDescription = createElement('textarea', '');
           fieldDescription.setAttribute('placeholder', 'Description');
 
           btnDone.addEventListener('click', () => {
-            if (!data.isDialog) return;
             const event = {
               id: +fieldId.value,
               event: fieldEvent.value,
@@ -343,21 +361,21 @@ function renderCalendar() {
             data.isDialog = false;
             eventList.push(event);
             localStorage.setItem('events', JSON.stringify(eventList));
-            wrap.parentNode.removeChild(wrap);
-            _renderTable();
+            advancedFormLast.parentNode.removeChild(advancedFormLast);
+            renderCalendar();
           });
 
-          wrap.appendChild(close);
-          wrap.appendChild(fieldEvent);
-          wrap.appendChild(fieldDate);
-          wrap.appendChild(fieldName);
-          wrap.appendChild(fieldDescription);
-          wrap.appendChild(btnDone);
-          wrap.appendChild(btnClean);
+          advancedFormLast.appendChild(close);
+          advancedFormLast.appendChild(fieldEvent);
+          advancedFormLast.appendChild(fieldDate);
+          advancedFormLast.appendChild(fieldName);
+          advancedFormLast.appendChild(fieldDescription);
+          advancedFormLast.appendChild(btnDone);
+          advancedFormLast.appendChild(btnErase);
         }
       });
       tr.appendChild(td);
-      aDay += data.DAY;
+      eventDay += data.DAY;
     }
   }
 }
