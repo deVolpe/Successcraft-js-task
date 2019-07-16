@@ -4,7 +4,7 @@ const eventList = JSON.parse(localStorage.events || '[]');
 
 // Local data
 data.local = {};
-data.local.week = [
+data.local.days = [
   'Monday',
   'Tuesday',
   'Wednesday',
@@ -27,6 +27,10 @@ data.local.months = [
   'November',
   'December'
 ];
+
+data.local.monthList = function() {
+  return this.months.map(m => m.toLowerCase());
+};
 
 // data
 
@@ -61,7 +65,7 @@ const displaySearchResult = (style = { display: 'none' }, txt) => {
 };
 
 const getFirstDayMonth = (year, month) => {
-  const firstDay = new Date(year, month, 1, 0, 0, 0, 0);
+  const firstDay = new Date(year, month, 1);
   return firstDay.getDay();
 };
 
@@ -77,12 +81,13 @@ window.onload = () => {
   const managePanel = document.getElementById('manage-panel');
   const searchPanel = document.getElementById('search-panel');
 
+  const { monthList } = data.local;
+  const { year } = data.currentDate;
+
   displayDate();
 
   document.getElementById('add').addEventListener('click', () => {
-    if (toggleDialog()) {
-      return;
-    }
+    if (toggleDialog()) return;
     const addForm = createElement('div', 'add-form');
     managePanel.appendChild(addForm);
 
@@ -91,20 +96,28 @@ window.onload = () => {
     const inputAdd = createElement('input');
     inputAdd.setAttribute('placeholder', 'March 5, 2.00 pm, Birthday');
     btnCreate.addEventListener('click', () => {
-      if (!inputAdd.value) return;
-      const data = inputAdd.value.split(',');
-      const id = new Date().getTime();
+      const res = inputAdd.value.split(',');
+      if (!res.length || res.length < 3) return;
+      const _day = +res[0].split(' ')[1].trim();
+      const _month = monthList.call(data.local).indexOf(
+        res[0]
+          .split(' ')[0]
+          .trim()
+          .toLowerCase()
+      );
+      const id = new Date(year, _month, _day).getTime();
       const newEvent = {};
       newEvent.id = id;
-      newEvent.event = data[0].trim();
-      newEvent.date = data[1].trim();
-      newEvent.description = data[2].trim();
+      newEvent.event = res[0].trim();
+      newEvent.date = res[1].trim();
+      newEvent.description = res[2].trim();
       newEvent.participants = 'No info';
 
       eventList.push(newEvent);
-      localStorage.events = JSON.stringify(eventList);
+      localStorage.events = JSON.stringify(eventList) || '[]';
       data.isDialog = false;
       managePanel.removeChild(addForm);
+      renderCalendar();
     });
     close.addEventListener('click', () => {
       data.isDialog = false;
@@ -145,6 +158,7 @@ window.onload = () => {
     renderCalendar();
   });
 
+  // Search DropList
   document.getElementById('search').addEventListener('keyup', e => {
     const query = e.target.value.toLowerCase();
     const events = eventList.map(ev => `${ev.event}<br/>${ev.date}`);
@@ -185,6 +199,7 @@ function renderCalendar() {
 
   const months = [];
   let eventDay = firstDayTieSeconds - data.DAY * (firstDay - 1);
+
   let td;
 
   for (let row = 0; row < 5; row++) {
@@ -195,16 +210,14 @@ function renderCalendar() {
         td = createElement(
           'td',
           '',
-          `${data.local.week[col]}, ${new Date(eventDay).getDate()}`
+          `${data.local.days[col]}, ${new Date(eventDay).getDate()}`
         );
       } else {
         if (row && !col) {
           months[0] = new Date(eventDay).getMonth() + 1;
         } else if (row === data.rowTotal - 1 && col === 6) {
           months[1] = new Date(eventDay).getMonth() + 1;
-          if (months[0] === months[1]) {
-            months.pop();
-          }
+          if (months[0] === months[1]) months.pop();
         }
         td = createElement('td', '', new Date(eventDay).getDate());
       }
@@ -212,7 +225,7 @@ function renderCalendar() {
         td.className = 'last';
       }
       eventList.forEach(ev => {
-        if (!!ev && +ev.id === eventDay) {
+        if (+ev.id === eventDay) {
           td.className = 'active';
           if (eventDay < Date.now() - data.DAY) {
             td.className = 'last active';
@@ -263,7 +276,11 @@ function renderCalendar() {
 
           const fieldEvent = createElement('h3', '', event.event);
           const fieldDate = createElement('p', '', event.date);
-          const fieldNames = createElement('p', '', event.participants);
+          const fieldNames = createElement(
+            'p',
+            '',
+            `Participants:<br/>${event.participants}`
+          );
 
           const fieldDescription = createElement(
             'textarea',
@@ -345,7 +362,7 @@ function renderCalendar() {
             data.isDialog = false;
             eventList.push(event);
             localStorage.events = JSON.stringify(eventList) || '[]';
-            advancedFormLast.parentNode.removeChild(advancedFormLast);
+            container.removeChild(advancedFormLast);
             renderCalendar();
           });
 

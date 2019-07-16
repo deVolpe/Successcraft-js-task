@@ -30,9 +30,9 @@ tr {
 
 th,
 td {
-  vertical-align: top;
+  line-height: 15px;
   padding: 6px;
-  font-size: 10px;
+  font-size: 12px;
   color: #aaaaaa;
   width: 100px;
   cursor: pointer;
@@ -52,10 +52,10 @@ td.active.edit {
   outline: 2px solid #2196f3;
 }
 td:hover {
-  background: #eeeeee;
+  background: #b0d9f8;
 }
 td.current {
-  background: #f4f4f4;
+  background: #afaaaa;
 }
 
 .header {
