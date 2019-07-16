@@ -1,6 +1,6 @@
 const data = {};
 
-const eventList = JSON.parse(localStorage.getItem('events')) || [];
+const eventList = JSON.parse(localStorage.events || '[]');
 
 // Local data
 data.local = {};
@@ -76,6 +76,7 @@ const toggleDialog = () => {
 window.onload = () => {
   const managePanel = document.getElementById('manage-panel');
   const searchPanel = document.getElementById('search-panel');
+
   displayDate();
 
   document.getElementById('add').addEventListener('click', () => {
@@ -85,7 +86,7 @@ window.onload = () => {
     const addForm = createElement('div', 'add-form');
     managePanel.appendChild(addForm);
 
-    const close = createElement('span', 'btn-close', 'x');
+    const close = createElement('span', 'btn-close');
     const btnCreate = createElement('button', 'btn btn-add', 'Create');
     const inputAdd = createElement('input');
     inputAdd.setAttribute('placeholder', 'March 5, 2.00 pm, Birthday');
@@ -146,13 +147,9 @@ window.onload = () => {
 
   document.getElementById('search').addEventListener('keyup', e => {
     const query = e.target.value.toLowerCase();
-    const events = eventList.map(data => {
-      return `${data.event}<br/>${data.date}`;
-    });
+    const events = eventList.map(ev => `${ev.event}<br/>${ev.date}`);
 
-    const filterEvents = events.filter(event =>
-      event.toLowerCase().includes(query)
-    );
+    const filterEvents = events.filter(ev => ev.toLowerCase().includes(query));
 
     const resultList = filterEvents.join('<br/><hr/>');
 
@@ -168,7 +165,7 @@ window.onload = () => {
 };
 
 function renderCalendar() {
-  const container = document.getElementById('table', '', '');
+  const container = document.getElementById('table', '');
   container.innerHTML = '';
 
   const table = createElement('table', '');
@@ -225,7 +222,7 @@ function renderCalendar() {
             ev.event +
             '</b><br/>' +
             ev.date +
-            '<br/>Participants:' +
+            '<br/>' +
             ev.participants +
             '<br/>' +
             ev.description +
@@ -241,36 +238,27 @@ function renderCalendar() {
           el.className = 'active edit';
           const id = +el.getAttribute('data-day');
           const event = eventList.filter(ev => ev.id === id)[0];
-          // eventList.forEach(event => {
-          //   if (event && event.id === id) {
-          //     data = event;
-          //   }
-          // });
           const editForm = createElement('div', 'add-form-edit');
-          document.getElementById('table').appendChild(editForm);
+          container.appendChild(editForm);
           editForm.style.left = `${e.target.offsetLeft + 170}px`;
           editForm.style.top = `${e.target.offsetTop - 30}px`;
 
-          const close = createElement('span', 'btn-close', 'x');
+          const close = createElement('span', 'btn-close');
           close.addEventListener('click', () => {
             data.isDialog = false;
             el.className = 'active';
-            editForm.parentNode.removeChild(editForm);
+            container.removeChild(editForm);
           });
-          const btnClean = createElement('button', 'btn btn-clear', 'Clean');
+          const btnClean = createElement('button', 'btn btn-clean', 'Clean');
           btnClean.addEventListener('click', () => {
             data.isDialog = false;
-            editForm.parentNode.removeChild(editForm);
+            container.removeChild(editForm);
             el.innerHTML = new Date(event.id).getDate();
             el.removeAttribute('class');
 
-            const _eventList = eventList.filter(ev => event.id !== ev.id)[0];
-            // eventList.forEach((event, i) => {
-            //   if (!!event && data.id === event.id) {
-            //     eventList.splice(i, 1);
-            //   }
-            // });
-            localStorage.setItem('events', JSON.stringify(_eventList) || '[]');
+            const _eventList = eventList.filter(ev => event.id !== ev.id);
+
+            localStorage.events = JSON.stringify(_eventList) || '[]';
           });
 
           const fieldEvent = createElement('h3', '', event.event);
@@ -283,7 +271,7 @@ function renderCalendar() {
             event.description
           );
 
-          const btnAdd = createElement('button', 'btn btn-add', 'Add');
+          const btnAdd = createElement('button', 'btn btn-add', 'Edit');
           btnAdd.addEventListener('click', () => {
             data.isDialog = false;
             event.description = fieldDescription.value;
@@ -291,24 +279,19 @@ function renderCalendar() {
             el.innerHTML =
               new Date(id).getDate() +
               '<br/><b>' +
-              data.event +
+              event.event +
               '</b><br/>' +
-              data.date +
+              event.date +
               '<br/>' +
-              data.participants +
+              event.participants +
               '<br/>' +
-              data.description +
+              event.description +
               '<br/>';
-            // const _eventList = eventList.reduce((acc, curr, i, arr) => {
-            //   if (event.id === curr.id) arr[i] = curr;
-            // });
             eventList.forEach((ev, i) => {
-              if (!!ev && event.id == ev.id) {
-                eventList[i] = event;
-              }
+              if (ev.id === event.id) eventList[i] = event;
             });
-            localStorage.setItem('events', JSON.stringify(eventList) || '[]');
-            editForm.parentNode.removeChild(editForm);
+            localStorage.events = JSON.stringify(eventList) || '[]';
+            container.removeChild(editForm);
           });
           editForm.appendChild(close);
           editForm.appendChild(fieldEvent);
@@ -323,11 +306,11 @@ function renderCalendar() {
             return;
           }
           const advancedFormLast = createElement('div', 'add-form-advanced');
-          document.getElementById('table').appendChild(advancedFormLast);
+          container.appendChild(advancedFormLast);
           advancedFormLast.style.left = e.target.offsetLeft + 170 + 'px';
           advancedFormLast.style.top = e.target.offsetTop - 30 + 'px';
 
-          const close = createElement('span', 'btn-close', 'x');
+          const close = createElement('span', 'btn-close');
           close.addEventListener('click', () => {
             data.isDialog = false;
             advancedFormLast.parentNode.removeChild(advancedFormLast);
@@ -361,7 +344,7 @@ function renderCalendar() {
             };
             data.isDialog = false;
             eventList.push(event);
-            localStorage.setItem('events', JSON.stringify(eventList) || '[]');
+            localStorage.events = JSON.stringify(eventList) || '[]';
             advancedFormLast.parentNode.removeChild(advancedFormLast);
             renderCalendar();
           });
